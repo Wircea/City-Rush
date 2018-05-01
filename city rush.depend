@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1525121575 source:d:\codeblocks workspace\city rush\main.cpp
+1525173248 source:d:\codeblocks workspace\city rush\main.cpp
 	<iostream>
 	<SDL.h>
 	<SDL_image.h>
@@ -346,5 +346,5 @@
 	"begin_code.h"
 	"close_code.h"
 
-1525007661 d:\codeblocks workspace\city rush\ltexture.h
+1525159985 d:\codeblocks workspace\city rush\ltexture.h
 

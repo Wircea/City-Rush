@@ -17,7 +17,7 @@ class LTexture
         void free();
 
         //Renders texture at given point
-        void render( int x, int y, SDL_Rect* clip, float scalex, float scaley);
+        void render( float x, float y, SDL_Rect* clip, float scalex, float scaley);
 
         //Gets image dimensions
         int getWidth();
@@ -28,8 +28,8 @@ class LTexture
         SDL_Texture* mTexture;
 
         //Image dimensions
-        int mWidth;
-        int mHeight;
+        float mWidth;
+        float mHeight;
 };
 
 void LTexture::free()
