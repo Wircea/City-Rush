@@ -40,6 +40,9 @@
 		<Unit filename="LTexture.h">
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
+		<Unit filename="LTimer.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
 		<Unit filename="main.cpp" />
 		<Extensions>
 			<code_completion />

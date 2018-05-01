@@ -17,7 +17,7 @@ class LTexture
         void free();
 
         //Renders texture at given point
-        void render( float x, float y, SDL_Rect* clip, float scalex, float scaley);
+        void render( float x, float y, SDL_Rect* clip, float scalex, float scaley, double angle=0.0,SDL_Point* center = NULL, SDL_RendererFlip flip = SDL_FLIP_NONE);
 
         //Gets image dimensions
         int getWidth();

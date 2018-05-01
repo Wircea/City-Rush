@@ -3,7 +3,9 @@
 #include <SDL_image.h>
 #include <stdio.h>
 #include <string>
+#include <math.h>
 #include "LTexture.h"
+#include "LTimer.h"
 
 
  int SCREEN_WIDTH = 640;
@@ -25,14 +27,23 @@ SDL_Renderer* gRenderer = NULL;
 
 SDL_Texture* gTexture = NULL;
 
-SDL_Rect gSpriteClips[ 10 ];
+SDL_Rect gSpriteClips[ 12 ];
 LTexture gSpriteSheetTexture;
+
+
+LTimer stepTimer;
 
 class playerController
 {
     public:
         float posx;
         float posy;
+
+        double rotation=180;
+        float velocity=0;
+        float rotationvelocity=0;
+        void move(float deltaTime);
+        void rotate(float deltaTime);
 
 };
 
@@ -46,6 +57,8 @@ class buildingProp
     int widex=1;
     int widey=1;
 
+
+
 };
 
 buildingProp buildings[100];
@@ -53,6 +66,41 @@ buildingProp buildings[100];
 
 
 playerController player;
+
+const int CAP_LIMIT_CAR=20;
+const int CAP_LIMIT_CAR_ROTATION=40;
+
+void playerController::move(float deltaTime)
+{
+if(velocity>CAP_LIMIT_CAR)
+    velocity=CAP_LIMIT_CAR;
+
+    posx = posx - float(velocity*cos((double)rotation*0.0174532925))/10;
+    posy = posy - float(velocity*sin((double)rotation*0.0174532925))/10;
+
+    if(velocity>0)
+    velocity-=1*deltaTime;
+    if(velocity<0)
+    velocity+=1*deltaTime;
+}
+
+void playerController::rotate(float deltaTime)
+{
+
+if(rotationvelocity>CAP_LIMIT_CAR_ROTATION)
+    rotationvelocity=CAP_LIMIT_CAR_ROTATION;
+if(rotationvelocity<-CAP_LIMIT_CAR_ROTATION)
+    rotationvelocity=-CAP_LIMIT_CAR_ROTATION;
+
+    rotation+= rotationvelocity*(velocity*10);
+
+rotationvelocity=0;
+
+if(velocity==0)
+    {
+    rotationvelocity=0;
+    }
+}
 
 bool init()
 {
@@ -108,7 +156,7 @@ bool init()
 	return success;
 }
 
-void LTexture::render( float x, float y, SDL_Rect* clip, float scalex, float scaley )
+void LTexture::render( float x, float y, SDL_Rect* clip, float scalex, float scaley, double angle,SDL_Point* center, SDL_RendererFlip flip  )
 {
 
     SDL_Rect renderQuad = { x, y, mWidth, mHeight };
@@ -121,7 +169,7 @@ void LTexture::render( float x, float y, SDL_Rect* clip, float scalex, float sca
     }
 
 
-    SDL_RenderCopy( gRenderer, mTexture, clip, &renderQuad );
+    SDL_RenderCopyEx( gRenderer, mTexture, clip, &renderQuad, angle, center, flip );
 }
 
 bool LTexture::loadFromFile( std::string path )
@@ -274,6 +322,11 @@ bool loadMedia()
         gSpriteClips[ 9 ].w = 8;
         gSpriteClips[ 9 ].h = 8;
 
+        gSpriteClips[ 10 ].x = 32;
+        gSpriteClips[ 10 ].y = 0;
+        gSpriteClips[ 10 ].w = 16;
+        gSpriteClips[ 10 ].h = 8;
+
 
     }
 
@@ -324,6 +377,10 @@ SDL_Texture* loadTexture( std::string path )
 
 	return newTexture;
 }
+
+
+
+Uint8 *SDL_GetKeyState(int *numkeys);
 
 int main( int argc, char* args[] )
 {
@@ -378,6 +435,13 @@ int main( int argc, char* args[] )
             buildings[4].widey=4;
             buildings[4].numberOfFloors=9;
 
+            buildings[5].posy=8*24;
+            buildings[5].posx=-8*17;
+            buildings[5].widex=7;
+            buildings[5].widey=2;
+            buildings[5].numberOfFloors=2;
+
+
 
 
             SDL_RenderSetScale( gRenderer, 4, 4);
@@ -387,7 +451,7 @@ int main( int argc, char* args[] )
 
 			while( !quit )
 			{
-
+                float timeStep = stepTimer.getTicks() / 10.f;
 				while( SDL_PollEvent( &e ) != 0 )
 				{
 				    //std::cout<<"b";
@@ -398,24 +462,34 @@ int main( int argc, char* args[] )
 					}
 					else if( e.type == SDL_KEYDOWN )
 					{
-					    std::cout<<player.posx<<" "<<player.posy<<"\n";
+					    //std::cout<<player.posx<<" "<<player.posy<<"\n";
+
+
+
+                    //Uint8 *keystate = SDL_GetKeyState(NULL);
+
+
+
 
 						switch( e.key.keysym.sym )
 						{
 							case SDLK_UP:
-							player.posy-=1,5;
+                            player.velocity=1;
+
 							break;
 
 							case SDLK_DOWN:
-							player.posy+=1,5;
+							player.velocity=-1;
 							break;
 
 							case SDLK_LEFT:
-							player.posx-=1,5;
+							//player.posx-=1,5;
+							player.rotationvelocity-=10;
 							break;
 
 							case SDLK_RIGHT:
-							player.posx+=1,5;
+							//player.posx+=1,5;
+							player.rotationvelocity+=10;
 							break;
 
 							default:
@@ -424,6 +498,9 @@ int main( int argc, char* args[] )
 						}
 					}
 				}
+				player.move(timeStep);
+				player.rotate(timeStep);
+				stepTimer.start();
 
 
 				SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
@@ -451,12 +528,12 @@ int main( int argc, char* args[] )
                     }
                 }
 
-                gSpriteSheetTexture.render( SCREEN_WIDTH/2, SCREEN_HEIGHT/2, &gSpriteClips[ 0 ],1,1 );
+                gSpriteSheetTexture.render( SCREEN_WIDTH/2-8, SCREEN_HEIGHT/2-4, &gSpriteClips[ 10 ],1,1 ,player.rotation);
 
 				for(int i=0;i<8;i++)
                 {
                    gSpriteSheetTexture.render( SCREEN_WIDTH/2-player.posx-buildings[i].posx, SCREEN_HEIGHT/2-player.posy+buildings[i].posy, &gSpriteClips[ 2 ],buildings[i].widex ,buildings[i].widey);
-                   float playerCY=player.posy+4;//center
+                   float playerCY=player.posy;//center
                    float buildingCY=buildings[i].posy+buildings[i].widey*4;
 
                    if(playerCY>buildingCY)

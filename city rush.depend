@@ -1,11 +1,13 @@
 # depslib dependency file v1.0
-1525173248 source:d:\codeblocks workspace\city rush\main.cpp
+1525202523 source:d:\codeblocks workspace\city rush\main.cpp
 	<iostream>
 	<SDL.h>
 	<SDL_image.h>
 	<stdio.h>
 	<string>
+	<math.h>
 	"LTexture.h"
+	"LTimer.h"
 
 1508790581 d:\mingw_dev_lib\include\sdl2\sdl.h
 	"SDL_main.h"
@@ -346,5 +348,7 @@
 	"begin_code.h"
 	"close_code.h"
 
-1525159985 d:\codeblocks workspace\city rush\ltexture.h
+1525199182 d:\codeblocks workspace\city rush\ltexture.h
+
+1525198700 d:\codeblocks workspace\city rush\ltimer.h
 
