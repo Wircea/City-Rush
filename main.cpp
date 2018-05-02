@@ -31,6 +31,9 @@ SDL_Rect gSpriteClips[ 12 ];
 LTexture gSpriteSheetTexture;
 
 
+bool pressedKeys[4];
+
+
 LTimer stepTimer;
 
 class playerController
@@ -42,8 +45,8 @@ class playerController
         double rotation=180;
         float velocity=0;
         float rotationvelocity=0;
-        void move(float deltaTime);
-        void rotate(float deltaTime);
+        void move(double deltaTime);
+        void rotate(double deltaTime);
 
 };
 
@@ -67,24 +70,34 @@ buildingProp buildings[100];
 
 playerController player;
 
-const int CAP_LIMIT_CAR=20;
-const int CAP_LIMIT_CAR_ROTATION=40;
+const float CAP_LIMIT_CAR=0.05;
+const float CAP_LIMIT_CAR_ROTATION=0.2;
 
-void playerController::move(float deltaTime)
+void playerController::move(double deltaTime)
 {
 if(velocity>CAP_LIMIT_CAR)
     velocity=CAP_LIMIT_CAR;
+if(velocity<-CAP_LIMIT_CAR)
+    velocity=-CAP_LIMIT_CAR;
 
-    posx = posx - float(velocity*cos((double)rotation*0.0174532925))/10;
-    posy = posy - float(velocity*sin((double)rotation*0.0174532925))/10;
+    posx = posx - float(velocity*cos((double)rotation*0.0174532925));
+    posy = posy - float(velocity*sin((double)rotation*0.0174532925));
+
+
 
     if(velocity>0)
-    velocity-=1*deltaTime;
+    velocity-=0.5*deltaTime;
     if(velocity<0)
-    velocity+=1*deltaTime;
+    velocity+=0.5*deltaTime;
+
+    if(velocity<0.0005&&velocity>0)
+        velocity=0;
+    if(velocity>-0.0005&&velocity<0)
+        velocity=0;
+    //std::cout<<velocity<<"\n";
 }
 
-void playerController::rotate(float deltaTime)
+void playerController::rotate(double deltaTime)
 {
 
 if(rotationvelocity>CAP_LIMIT_CAR_ROTATION)
@@ -92,13 +105,19 @@ if(rotationvelocity>CAP_LIMIT_CAR_ROTATION)
 if(rotationvelocity<-CAP_LIMIT_CAR_ROTATION)
     rotationvelocity=-CAP_LIMIT_CAR_ROTATION;
 
-    rotation+= rotationvelocity*(velocity*10);
+    if(velocity>0)
+    rotation+= rotationvelocity;
 
+if(!pressedKeys[2]&&!pressedKeys[3])
 rotationvelocity=0;
+if(rotationvelocity>0)
+    rotationvelocity-=0.9*deltaTime;
+    if(rotationvelocity<0)
+    rotationvelocity+=0.9*deltaTime;
 
 if(velocity==0)
     {
-    rotationvelocity=0;
+    //rotationvelocity=0;
     }
 }
 
@@ -451,7 +470,7 @@ int main( int argc, char* args[] )
 
 			while( !quit )
 			{
-                float timeStep = stepTimer.getTicks() / 10.f;
+                double timeStep = stepTimer.getTicks() / 1000.f;
 				while( SDL_PollEvent( &e ) != 0 )
 				{
 				    //std::cout<<"b";
@@ -464,32 +483,32 @@ int main( int argc, char* args[] )
 					{
 					    //std::cout<<player.posx<<" "<<player.posy<<"\n";
 
-
-
                     //Uint8 *keystate = SDL_GetKeyState(NULL);
-
-
 
 
 						switch( e.key.keysym.sym )
 						{
 							case SDLK_UP:
-                            player.velocity=1;
+
+                            pressedKeys[0]=true;
 
 							break;
 
 							case SDLK_DOWN:
-							player.velocity=-1;
+
+							pressedKeys[1]=true;
+
 							break;
 
 							case SDLK_LEFT:
-							//player.posx-=1,5;
-							player.rotationvelocity-=10;
+
+							pressedKeys[2]=true;
+
 							break;
 
 							case SDLK_RIGHT:
-							//player.posx+=1,5;
-							player.rotationvelocity+=10;
+
+							pressedKeys[3]=true;
 							break;
 
 							default:
@@ -497,9 +516,86 @@ int main( int argc, char* args[] )
 							break;
 						}
 					}
+					else if( e.type == SDL_KEYUP )
+                    {
+                        switch( e.key.keysym.sym )
+						{
+							case SDLK_UP:
+
+                            pressedKeys[0]=false;
+
+							break;
+
+							case SDLK_DOWN:
+
+							pressedKeys[1]=false;
+
+							break;
+
+							case SDLK_LEFT:
+
+
+							pressedKeys[2]=false;
+
+							break;
+
+							case SDLK_RIGHT:
+
+							pressedKeys[3]=false;
+							break;
+
+							default:
+							std::cout<<"l";
+							break;
+						}
+                    }
 				}
-				player.move(timeStep);
-				player.rotate(timeStep);
+
+                if(pressedKeys[0]&&pressedKeys[2])
+                    {
+                    player.velocity+=1.5*timeStep;
+                    player.rotationvelocity-=10000*timeStep;
+                    player.move(timeStep);
+                    player.rotate(timeStep);
+                    }
+                 if(pressedKeys[0]&&pressedKeys[3])
+                    {
+                    player.velocity+=1.5*timeStep;
+                    player.rotationvelocity+=10000*timeStep;
+                    player.move(timeStep);
+                    player.rotate(timeStep);
+                    }
+                if(pressedKeys[0]&&!pressedKeys[2]&&!pressedKeys[3])
+                    {
+                    player.velocity+=1.5*timeStep;
+                    player.move(timeStep);
+                    }
+
+                if(pressedKeys[1]&&pressedKeys[2])
+                    {
+                    player.velocity-=100*timeStep;
+                    player.rotationvelocity-=10000*timeStep;
+                    player.move(timeStep);
+                    player.rotate(timeStep);
+                    }
+                 if(pressedKeys[1]&&pressedKeys[3])
+                    {
+                    player.velocity-=100*timeStep;
+                    player.rotationvelocity+=10000*timeStep;
+                    player.move(timeStep);
+                    player.rotate(timeStep);
+                    }
+                if(pressedKeys[1]&&!pressedKeys[2]&&!pressedKeys[3])
+                    {
+                        player.velocity-=100*timeStep;
+                        player.move(timeStep);
+                    }
+
+                    player.move(timeStep);
+                    player.rotate(timeStep);
+
+                std::cout<<pressedKeys[0]<<" "<<pressedKeys[1]<<" "<<pressedKeys[2]<<" "<<pressedKeys[3]<<"\n";
+
 				stepTimer.start();
 
 
