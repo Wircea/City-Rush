@@ -8,8 +8,8 @@
 #include "LTimer.h"
 
 
- int SCREEN_WIDTH = 640;
- int SCREEN_HEIGHT = 480;
+ int SCREEN_WIDTH = 800;
+ int SCREEN_HEIGHT = 600;
 
 bool init();
 
@@ -27,7 +27,7 @@ SDL_Renderer* gRenderer = NULL;
 
 SDL_Texture* gTexture = NULL;
 
-SDL_Rect gSpriteClips[ 12 ];
+SDL_Rect gSpriteClips[ 64 ];
 LTexture gSpriteSheetTexture;
 
 
@@ -347,6 +347,12 @@ bool loadMedia()
         gSpriteClips[ 10 ].h = 8;
 
 
+        gSpriteClips[ 11 ].x = 16;
+        gSpriteClips[ 11 ].y = 16;
+        gSpriteClips[ 11 ].w = 8;
+        gSpriteClips[ 11 ].h = 8;
+
+
     }
 
 
@@ -423,7 +429,7 @@ int main( int argc, char* args[] )
 
 			SDL_Event e;
 
-            buildings[0].posy=-5*8;
+            /*buildings[0].posy=-5*8;
             buildings[0].posx=0;
             buildings[0].widex=30;
             buildings[0].widey=5;
@@ -433,7 +439,7 @@ int main( int argc, char* args[] )
             buildings[1].posx=8*8;
             buildings[1].widex=8;
             buildings[1].widey=30;
-            buildings[1].numberOfFloors=25;
+            buildings[1].numberOfFloors=25;*/
 
             buildings[2].posy=8*6;
             buildings[2].posx=-8*5;
@@ -454,18 +460,18 @@ int main( int argc, char* args[] )
             buildings[4].widey=4;
             buildings[4].numberOfFloors=9;
 
-            buildings[5].posy=8*24;
+            /*buildings[5].posy=8*20;
             buildings[5].posx=-8*17;
             buildings[5].widex=7;
-            buildings[5].widey=2;
-            buildings[5].numberOfFloors=2;
+            buildings[5].widey=8;
+            buildings[5].numberOfFloors=4;*/
 
 
 
 
             SDL_RenderSetScale( gRenderer, 4, 4);
             SCREEN_HEIGHT/=4;
-            SCREEN_WIDTH/=4;
+            SCREEN_WIDTH/=4; //scale
 
 
 			while( !quit )
@@ -553,14 +559,14 @@ int main( int argc, char* args[] )
 
                 if(pressedKeys[0]&&pressedKeys[2])
                     {
-                    player.velocity+=1.5*timeStep;
+                    player.velocity+=1.1*timeStep;
                     player.rotationvelocity-=10000*timeStep;
                     player.move(timeStep);
                     player.rotate(timeStep);
                     }
                  if(pressedKeys[0]&&pressedKeys[3])
                     {
-                    player.velocity+=1.5*timeStep;
+                    player.velocity+=1.1*timeStep;
                     player.rotationvelocity+=10000*timeStep;
                     player.move(timeStep);
                     player.rotate(timeStep);
@@ -630,45 +636,95 @@ int main( int argc, char* args[] )
                 {
                    gSpriteSheetTexture.render( SCREEN_WIDTH/2-player.posx-buildings[i].posx, SCREEN_HEIGHT/2-player.posy+buildings[i].posy, &gSpriteClips[ 2 ],buildings[i].widex ,buildings[i].widey);
                    float playerCY=player.posy;//center
+                   float playerCX=player.posx;
+
                    float buildingCY=buildings[i].posy+buildings[i].widey*4;
+                   float buildingCX=buildings[i].posx-buildings[i].widex*2;
+
+
+                   //std::cout<<playerCX<<"\n";
 
                    if(playerCY>buildingCY)
                         {
                             //std::cout<<player.posy+4<<">"<<buildings[i].posy+4<<"\n";
                             float distanceHeight=(playerCY-buildingCY)/10*buildings[i].numberOfFloors;
+                            float distanceWidth=(playerCX+buildingCX)/10*buildings[i].numberOfFloors;
                             //std::cout<<player.posy<<"\n";
                             //std::cout<<-(player.posy-buildings[i].posy-player.posy-buildings[i].posy)/10*buildings[i].numberOfFloors<<"\n";
 
                             float sizeOfWindows=distanceHeight/buildings[i].numberOfFloors;
-                            gSpriteSheetTexture.render( SCREEN_WIDTH/2-player.posx-buildings[i].posx, SCREEN_HEIGHT/2-player.posy+buildings[i].posy+buildings[i].widey*8-buildings[i].numberOfFloors*sizeOfWindows, &gSpriteClips[ 4 ],buildings[i].widex*4,buildings[i].numberOfFloors*sizeOfWindows/2 );
-                            gSpriteSheetTexture.render( SCREEN_WIDTH/2-player.posx-buildings[i].posx, SCREEN_HEIGHT/2-player.posy+buildings[i].posy- distanceHeight, &gSpriteClips[ 2 ],buildings[i].widex,buildings[i].widey );
+                            float offsetOfWindows=distanceWidth/buildings[i].numberOfFloors;
+
+                            //gSpriteSheetTexture.render( SCREEN_WIDTH/2-player.posx-buildings[i].posx, SCREEN_HEIGHT/2-player.posy+buildings[i].posy+buildings[i].widey*8-buildings[i].numberOfFloors*sizeOfWindows, &gSpriteClips[ 4 ],buildings[i].widex*4,buildings[i].numberOfFloors*sizeOfWindows/2 ); //old handler for building gaps (vertical only)
+                            gSpriteSheetTexture.render( SCREEN_WIDTH/2-player.posx-buildings[i].posx - distanceWidth, SCREEN_HEIGHT/2-player.posy+buildings[i].posy- distanceHeight, &gSpriteClips[ 2 ],buildings[i].widex,buildings[i].widey );
                             //std::cout<<1/(player.posy-buildings[i].posy)*10; //<------------ old value for y scale
 
                             //std::cout<<sizeOfWindows<<"\n";
 
                             //std::cout<<  (player.posy-buildings[i].posy-buildings[i].posy +8) /buildings[i].numberOfFloors<<"\n";
-                            for(int k=0;k<buildings[i].widex;k++)
-                            for(int j=0;j<buildings[i].numberOfFloors;j++)
 
+                            if(playerCX>buildingCX)
                             {
-                                gSpriteSheetTexture.render( SCREEN_WIDTH/2-player.posx-buildings[i].posx+8*k, SCREEN_HEIGHT/2-player.posy+buildings[i].posy-sizeOfWindows-j*(sizeOfWindows)+8*buildings[i].widey, &gSpriteClips[ 1 ],1,sizeOfWindows/8 );
-                                //std::cout<<j<<": "<<SCREEN_HEIGHT/2-player.posy-buildings[i].posy-j*sizeOfWindows<<"\n";
-                                //std::cout<<j<<": "<<sizeOfWindows<<"\n";
+                            for(int k=0;k<buildings[i].widey;k++)
+                                for(int j=0;j<buildings[i].numberOfFloors;j++)
+                                {
+                                    gSpriteSheetTexture.render( SCREEN_WIDTH/2-player.posx-buildings[i].posx-j*(offsetOfWindows), SCREEN_HEIGHT/2-player.posy+buildings[i].posy+buildings[i].widey*4+8-sizeOfWindows-k*8-j*sizeOfWindows, &gSpriteClips[ 1 ],-floor(offsetOfWindows)/8,1 ,0);
+                                }
                             }
+
+                            if(playerCX>buildingCX&& playerCX>0)
+                            {
+
+                            for(int k=0;k<buildings[i].widey;k++)
+                                for(int j=0;j<buildings[i].numberOfFloors;j++)
+                                {
+                                    gSpriteSheetTexture.render( SCREEN_WIDTH/2-player.posx-buildings[i].posx-(j+1)*(offsetOfWindows)+buildings[i].widex*8-1, SCREEN_HEIGHT/2-player.posy+buildings[i].posy+buildings[i].widey*4+8-sizeOfWindows-k*8-j*sizeOfWindows, &gSpriteClips[ 1 ],floor(offsetOfWindows+1)/8,1 ,0);
+                                }
+                            }
+
+                            for(int k=0;k<buildings[i].widex;k++)
+                                for(int j=0;j<buildings[i].numberOfFloors;j++)
+                                {
+                                    gSpriteSheetTexture.render( SCREEN_WIDTH/2-player.posx-buildings[i].posx+8*k-offsetOfWindows*j, SCREEN_HEIGHT/2-player.posy+buildings[i].posy-(j+1)*(sizeOfWindows)+8*buildings[i].widey, &gSpriteClips[ 11 ],1,floor(sizeOfWindows+1)/8 );
+                                }
+
+
                         }
                    else if(playerCY<buildingCY)
 
                         {
 
                         float distanceHeight=-(playerCY-buildingCY)/10*buildings[i].numberOfFloors;
+                        float distanceWidth=(playerCX+buildingCX)/10*buildings[i].numberOfFloors;
+
                         float sizeOfWindows=distanceHeight/buildings[i].numberOfFloors;
-                        gSpriteSheetTexture.render( SCREEN_WIDTH/2-player.posx-buildings[i].posx, SCREEN_HEIGHT/2-player.posy+buildings[i].posy+ distanceHeight-sizeOfWindows, &gSpriteClips[ 2 ],buildings[i].widex,buildings[i].widey );
-                        gSpriteSheetTexture.render( SCREEN_WIDTH/2-player.posx-buildings[i].posx, SCREEN_HEIGHT/2-player.posy+buildings[i].posy, &gSpriteClips[ 4 ],buildings[i].widex*4,buildings[i].numberOfFloors*sizeOfWindows/2 );
+                        float offsetOfWindows=distanceWidth/buildings[i].numberOfFloors;
+                        gSpriteSheetTexture.render( SCREEN_WIDTH/2-player.posx-buildings[i].posx- distanceWidth, SCREEN_HEIGHT/2-player.posy+buildings[i].posy+ distanceHeight-sizeOfWindows, &gSpriteClips[ 2 ],buildings[i].widex,buildings[i].widey );
+                        //gSpriteSheetTexture.render( SCREEN_WIDTH/2-player.posx-buildings[i].posx, SCREEN_HEIGHT/2-player.posy+buildings[i].posy, &gSpriteClips[ 4 ],buildings[i].widex*4,buildings[i].numberOfFloors*sizeOfWindows/2 );
+
+                         if(playerCX>buildingCX)
+                            {
+                            for(int k=0;k<buildings[i].widey;k++)
+                                for(int j=0;j<buildings[i].numberOfFloors;j++)
+                                {
+                                    gSpriteSheetTexture.render( SCREEN_WIDTH/2-player.posx-buildings[i].posx+(j+1)*(offsetOfWindows)- distanceWidth, SCREEN_HEIGHT/2-player.posy+buildings[i].posy+k*8+(buildings[i].numberOfFloors- j)*sizeOfWindows, &gSpriteClips[ 1 ],-floor(offsetOfWindows)/8,1 ,0);
+                                }
+                            }
+
+                            if(playerCX>buildingCX&& playerCX>0)
+                            {
+
+                            for(int k=0;k<buildings[i].widey;k++)
+                                for(int j=0;j<buildings[i].numberOfFloors;j++)
+                                {
+                                    gSpriteSheetTexture.render( SCREEN_WIDTH/2-player.posx-buildings[i].posx-(j+1)*(offsetOfWindows)+buildings[i].widex*8-1, SCREEN_HEIGHT/2-player.posy+buildings[i].posy+buildings[i].widey*4+8-sizeOfWindows-k*8+(j+1)*sizeOfWindows, &gSpriteClips[ 1 ],floor(offsetOfWindows+1)/8,1 ,0);
+                                }
+                            }
 
                         for(int k=0;k<buildings[i].widex;k++)
                         for(int j=0;j<buildings[i].numberOfFloors;j++)
                             {
-                                gSpriteSheetTexture.render( SCREEN_WIDTH/2-player.posx-buildings[i].posx+8*k, SCREEN_HEIGHT/2-player.posy+buildings[i].posy+(j)*(sizeOfWindows), &gSpriteClips[ 1 ],1,sizeOfWindows/8 );
+                                gSpriteSheetTexture.render( SCREEN_WIDTH/2-player.posx-buildings[i].posx+8*k-offsetOfWindows*j, SCREEN_HEIGHT/2-player.posy+buildings[i].posy+(j)*(sizeOfWindows), &gSpriteClips[ 11 ],1,floor(sizeOfWindows+1)/8,180 );
                                 //std::cout<<j<<": "<<SCREEN_HEIGHT/2-player.posy-buildings[i].posy-j*sizeOfWindows<<"\n";
                                 //std::cout<<j<<": "<<sizeOfWindows<<"\n";
                             }
